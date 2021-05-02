@@ -1,31 +1,25 @@
 <?php
-
-
-require_once("config/conexion.php");
-
-if(isset($_POST["enviar"]) and $_POST["enviar"]=="si")
-{
-    require_once("models/Usuario.php");
-    $usuario= new Usuario();
-    $usuario->login();
-}
-
-
+    require_once("config/conexion.php");
+    if(isset($_POST["enviar"]) and $_POST["enviar"]=="si"){
+        require_once("models/Usuario.php");
+        $usuario = new Usuario();
+        $usuario->login();
+    }
 ?>
 <!DOCTYPE html>
-<<html>
+<html>
 <head lang="es">
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 	<meta http-equiv="x-ua-compatible" content="ie=edge">
 	<title>MeneshDesarrollador</>::Acceso</title>
 
-	<link href="/public/img/favicon.144x144.png" rel="apple-touch-icon" type="image/png" sizes="144x144">
-	<link href="/public/img/favicon.114x114.png" rel="apple-touch-icon" type="image/png" sizes="114x114">
-	<link href="/public/" rel="apple-touch-icon" type="image/png" sizes="72x72">
-	<link href="/public/" rel="apple-touch-icon" type="image/png">
-	<link href="/public/" rel="icon" type="image/png">
-	<link href="/public/" rel="shortcut icon">
+	<link href="img/favicon.144x144.png" rel="apple-touch-icon" type="image/png" sizes="144x144">
+	<link href="img/favicon.114x114.png" rel="apple-touch-icon" type="image/png" sizes="114x114">
+	<link href="img/favicon.72x72.png" rel="apple-touch-icon" type="image/png" sizes="72x72">
+	<link href="img/favicon.57x57.png" rel="apple-touch-icon" type="image/png">
+	<link href="img/favicon.png" rel="icon" type="image/png">
+	<link href="img/favicon.ico" rel="shortcut icon">
 
     <link rel="stylesheet" href="public/css/separate/pages/login.min.css">
     <link rel="stylesheet" href="public/css/lib/font-awesome/font-awesome.min.css">
