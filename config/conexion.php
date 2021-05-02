@@ -2,7 +2,7 @@
 
 session_start();
 
-class Conectar(); 
+class Conectar
 {
     protected $dbh; 
 
@@ -10,14 +10,14 @@ class Conectar();
     {
         try 
         {
-            $conectar = $this-> new PDO("mysql:localhost;dbname=menesh_helpdesk","root","");
+            $conectar = $this->dbh =new PDO("mysql:localhost;dbname=menesh_helpdesk","root","");
 
             return $conectar;   
         }
 
         catch (Exception $e   )
         {
-            print" Error Base de datos": "" . $e->getMessage() . "<br/>";
+            print "¡Error BD!: " . $e->getMessage() . "<br/>";
             die();
         }
 
@@ -26,13 +26,14 @@ class Conectar();
 
     public function set_names()
     {
-        return $this->dbh->query("Set names utf8");
+        return $this->dbh->query("SET NAMES 'utf8'");
     }
 
     public function ruta()
     {
-        return"http://localhost:90/HelpDesk"
+        return"http://localhost:90/HelpDesk";
     }
+
     }
 
 
