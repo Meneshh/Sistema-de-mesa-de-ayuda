@@ -1,193 +1,199 @@
 <?php
-    require_once("../config/conexion.php");
-    require_once("../models/Ticket.php");
-    $ticket = new Ticket();
+    class Ticket extends Conectar{
 
-    switch($_GET["op"]){
-        
-        case "insert":
-            $ticket->insert_ticket($_POST["usu_id"],$_POST["cat_id"],$_POST["tick_titulo"],$_POST["tick_descrip"]);
-        break;
+        public function insert_ticket($usu_id,$cat_id,$tick_titulo,$tick_descrip){
+            $conectar= parent::conexion();
+            parent::set_names();
+            $sql="INSERT INTO tm_ticket (tick_id,usu_id,cat_id,tick_titulo,tick_descrip,tick_estado,fech_crea,est) VALUES (NULL,?,?,?,?,'Abierto',now(),'1');";
+            $sql=$conectar->prepare($sql);
+            $sql->bindValue(1, $usu_id);
+            $sql->bindValue(2, $cat_id);
+            $sql->bindValue(3, $tick_titulo);
+            $sql->bindValue(4, $tick_descrip);
+            $sql->execute();
+            return $resultado=$sql->fetchAll();
+        }
 
-        case "update":
-            $ticket->update_ticket($_POST["tick_id"]);
-            $ticket->insert_ticketdetalle_cerrar($_POST["tick_id"],$_POST["usu_id"]);
-        break;
+        public function listar_ticket_x_usu($usu_id){
+            $conectar= parent::conexion();
+            parent::set_names();
+            $sql="SELECT 
+                tm_ticket.tick_id,
+                tm_ticket.usu_id,
+                tm_ticket.cat_id,
+                tm_ticket.tick_titulo,
+                tm_ticket.tick_descrip,
+                tm_ticket.tick_estado,
+                tm_ticket.fech_crea,
+                tm_usuario.usu_nom,
+                tm_usuario.usu_ape,
+                tm_categoria.cat_nom
+                FROM 
+                tm_ticket
+                INNER join tm_categoria on tm_ticket.cat_id = tm_categoria.cat_id
+                INNER join tm_usuario on tm_ticket.usu_id = tm_usuario.usu_id
+                WHERE
+                tm_ticket.est = 1
+                AND tm_usuario.usu_id=?";
+            $sql=$conectar->prepare($sql);
+            $sql->bindValue(1, $usu_id);
+            $sql->execute();
+            return $resultado=$sql->fetchAll();
+        }
 
-        case "listar_x_usu":
-            $datos=$ticket->listar_ticket_x_usu($_POST["usu_id"]);
-            $data= Array();
-            foreach($datos as $row){
-                $sub_array = array();
-                $sub_array[] = $row["tick_id"];
-                $sub_array[] = $row["cat_nom"];
-                $sub_array[] = $row["tick_titulo"];
+        public function listar_ticket_x_id($tick_id){
+            $conectar= parent::conexion();
+            parent::set_names();
+            $sql="SELECT 
+                tm_ticket.tick_id,
+                tm_ticket.usu_id,
+                tm_ticket.cat_id,
+                tm_ticket.tick_titulo,
+                tm_ticket.tick_descrip,
+                tm_ticket.tick_estado,
+                tm_ticket.fech_crea,
+                tm_usuario.usu_nom,
+                tm_usuario.usu_ape,
+                tm_categoria.cat_nom
+                FROM 
+                tm_ticket
+                INNER join tm_categoria on tm_ticket.cat_id = tm_categoria.cat_id
+                INNER join tm_usuario on tm_ticket.usu_id = tm_usuario.usu_id
+                WHERE
+                tm_ticket.est = 1
+                AND tm_ticket.tick_id = ?";
+            $sql=$conectar->prepare($sql);
+            $sql->bindValue(1, $tick_id);
+            $sql->execute();
+            return $resultado=$sql->fetchAll();
+        }
 
-                if ($row["tick_estado"]=="Abierto"){
-                    $sub_array[] = '<span class="label label-pill label-success">Abierto</span>';
-                }else{
-                    $sub_array[] = '<span class="label label-pill label-danger">Cerrado</span>';
-                }
-                
-                $sub_array[] = date("d/m/Y H:i:s", strtotime($row["fech_crea"]));
-                $sub_array[] = '<button type="button" onClick="ver('.$row["tick_id"].');"  id="'.$row["tick_id"].'" class="btn btn-inline btn-primary btn-sm ladda-button"><i class="fa fa-eye"></i></button>';
-                $data[] = $sub_array;
-            }
+        public function listar_ticket(){
+            $conectar= parent::conexion();
+            parent::set_names();
+            $sql="SELECT 
+                tm_ticket.tick_id,
+                tm_ticket.usu_id,
+                tm_ticket.cat_id,
+                tm_ticket.tick_titulo,
+                tm_ticket.tick_descrip,
+                tm_ticket.tick_estado,
+                tm_ticket.fech_crea,
+                tm_usuario.usu_nom,
+                tm_usuario.usu_ape,
+                tm_categoria.cat_nom
+                FROM 
+                tm_ticket
+                INNER join tm_categoria on tm_ticket.cat_id = tm_categoria.cat_id
+                INNER join tm_usuario on tm_ticket.usu_id = tm_usuario.usu_id
+                WHERE
+                tm_ticket.est = 1
+                ";
+            $sql=$conectar->prepare($sql);
+            $sql->execute();
+            return $resultado=$sql->fetchAll();
+        }
 
-            $results = array(
-                "sEcho"=>1,
-                "iTotalRecords"=>count($data),
-                "iTotalDisplayRecords"=>count($data),
-                "aaData"=>$data);
-            echo json_encode($results);
-        break;
+        public function listar_ticketdetalle_x_ticket($tick_id){
+            $conectar= parent::conexion();
+            parent::set_names();
+            $sql="SELECT
+                td_ticketdetalle.tickd_id,
+                td_ticketdetalle.tickd_descrip,
+                td_ticketdetalle.fech_crea,
+                tm_usuario.usu_nom,
+                tm_usuario.usu_ape,
+                tm_usuario.rol_id
+                FROM 
+                td_ticketdetalle
+                INNER join tm_usuario on td_ticketdetalle.usu_id = tm_usuario.usu_id
+                WHERE 
+                tick_id =?";
+            $sql=$conectar->prepare($sql);
+            $sql->bindValue(1, $tick_id);
+            $sql->execute();
+            return $resultado=$sql->fetchAll();
+        }
 
-        case "listar":
-            $datos=$ticket->listar_ticket();
-            $data= Array();
-            foreach($datos as $row){
-                $sub_array = array();
-                $sub_array[] = $row["tick_id"];
-                $sub_array[] = $row["cat_nom"];
-                $sub_array[] = $row["tick_titulo"];
+        public function insert_ticketdetalle($tick_id,$usu_id,$tickd_descrip){
+            $conectar= parent::conexion();
+            parent::set_names();
+                $sql="INSERT INTO td_ticketdetalle (tickd_id,tick_id,usu_id,tickd_descrip,fech_crea,est) VALUES (NULL,?,?,?,now(),'1');";
+            $sql=$conectar->prepare($sql);
+            $sql->bindValue(1, $tick_id);
+            $sql->bindValue(2, $usu_id);
+            $sql->bindValue(3, $tickd_descrip);
+            $sql->execute();
+            return $resultado=$sql->fetchAll();
+        }
 
-                if ($row["tick_estado"]=="Abierto"){
-                    $sub_array[] = '<span class="label label-pill label-success">Abierto</span>';
-                }else{
-                    $sub_array[] = '<span class="label label-pill label-danger">Cerrado</span>';
-                }
+        public function insert_ticketdetalle_cerrar($tick_id,$usu_id){
+            $conectar= parent::conexion();
+            parent::set_names();
+                $sql="call sp_i_ticketdetalle_01(?,?)";
+            $sql=$conectar->prepare($sql);
+            $sql->bindValue(1, $tick_id);
+            $sql->bindValue(2, $usu_id);
+            $sql->execute();
+            return $resultado=$sql->fetchAll();
+        }
 
-                $sub_array[] = date("d/m/Y H:i:s", strtotime($row["fech_crea"]));
-                $sub_array[] = '<button type="button" onClick="ver('.$row["tick_id"].');"  id="'.$row["tick_id"].'" class="btn btn-inline btn-primary btn-sm ladda-button"><i class="fa fa-eye"></i></button>';
-                $data[] = $sub_array;
-            }
+        public function update_ticket($tick_id){
+            $conectar= parent::conexion();
+            parent::set_names();
+            $sql="update tm_ticket 
+                set	
+                    tick_estado = 'Cerrado'
+                where
+                    tick_id = ?";
+            $sql=$conectar->prepare($sql);
+            $sql->bindValue(1, $tick_id);
+            $sql->execute();
+            return $resultado=$sql->fetchAll();
+        }
 
-            $results = array(
-                "sEcho"=>1,
-                "iTotalRecords"=>count($data),
-                "iTotalDisplayRecords"=>count($data),
-                "aaData"=>$data);
-            echo json_encode($results);
-        break;
+        public function get_ticket_total(){
+            $conectar= parent::conexion();
+            parent::set_names();
+            $sql="SELECT COUNT(*) as TOTAL FROM tm_ticket";
+            $sql=$conectar->prepare($sql);
+            $sql->execute();
+            return $resultado=$sql->fetchAll();
+        }
 
-        case "listardetalle":
-            $datos=$ticket->listar_ticketdetalle_x_ticket($_POST["tick_id"]);
-            ?>
-                <?php
-                    foreach($datos as $row){
-                        ?>
-                            <article class="activity-line-item box-typical">
-                                <div class="activity-line-date">
-                                    <?php echo date("d/m/Y", strtotime($row["fech_crea"]));?>
-                                </div>
-                                <header class="activity-line-item-header">
-                                    <div class="activity-line-item-user">
-                                        <div class="activity-line-item-user-photo">
-                                            <a href="#">
-                                                <img src="../../public/<?php echo $row['rol_id'] ?>.jpg" alt="">
-                                            </a>
-                                        </div>
-                                        <div class="activity-line-item-user-name"><?php echo $row['usu_nom'].' '.$row['usu_ape'];?></div>
-                                        <div class="activity-line-item-user-status">
-                                            <?php 
-                                                if ($row['rol_id']==1){
-                                                    echo 'Usuario';
-                                                }else{
-                                                    echo 'Soporte';
-                                                }
-                                            ?>
-                                        </div>
-                                    </div>
-                                </header>
-                                <div class="activity-line-action-list">
-                                    <section class="activity-line-action">
-                                        <div class="time"><?php echo date("H:i:s", strtotime($row["fech_crea"]));?></div>
-                                        <div class="cont">
-                                            <div class="cont-in">
-                                                <p>
-                                                    <?php echo $row["tickd_descrip"];?>
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </section>
-                                </div>
-                            </article>
-                        <?php
-                    }
-                ?>
-            <?php
-        break;
+        public function get_ticket_totalabierto(){
+            $conectar= parent::conexion();
+            parent::set_names();
+            $sql="SELECT COUNT(*) as TOTAL FROM tm_ticket where tick_estado='Abierto'";
+            $sql=$conectar->prepare($sql);
+            $sql->execute();
+            return $resultado=$sql->fetchAll();
+        }
 
-        case "mostrar";
-            $datos=$ticket->listar_ticket_x_id($_POST["tick_id"]);  
-            if(is_array($datos)==true and count($datos)>0){
-                foreach($datos as $row)
-                {
-                    $output["tick_id"] = $row["tick_id"];
-                    $output["usu_id"] = $row["usu_id"];
-                    $output["cat_id"] = $row["cat_id"];
+        public function get_ticket_totalcerrado(){
+            $conectar= parent::conexion();
+            parent::set_names();
+            $sql="SELECT COUNT(*) as TOTAL FROM tm_ticket where tick_estado='Cerrado'";
+            $sql=$conectar->prepare($sql);
+            $sql->execute();
+            return $resultado=$sql->fetchAll();
+        } 
 
-                    $output["tick_titulo"] = $row["tick_titulo"];
-                    $output["tick_descrip"] = $row["tick_descrip"];
-
-                    if ($row["tick_estado"]=="Abierto"){
-                        $output["tick_estado"] = '<span class="label label-pill label-success">Abierto</span>';
-                    }else{
-                        $output["tick_estado"] = '<span class="label label-pill label-danger">Cerrado</span>';
-                    }
-
-                    $output["tick_estado_texto"] = $row["tick_estado"];
-
-                    $output["fech_crea"] = date("d/m/Y H:i:s", strtotime($row["fech_crea"]));
-                    $output["usu_nom"] = $row["usu_nom"];
-                    $output["usu_ape"] = $row["usu_ape"];
-                    $output["cat_nom"] = $row["cat_nom"];
-                }
-                echo json_encode($output);
-            }   
-        break;
-
-        case "insertdetalle":
-            $ticket->insert_ticketdetalle($_POST["tick_id"],$_POST["usu_id"],$_POST["tickd_descrip"]);
-        break;
-
-        case "total";
-            $datos=$ticket->get_ticket_total();  
-            if(is_array($datos)==true and count($datos)>0){
-                foreach($datos as $row)
-                {
-                    $output["TOTAL"] = $row["TOTAL"];
-                }
-                echo json_encode($output);
-            }
-        break;
-
-        case "totalabierto";
-            $datos=$ticket->get_ticket_totalabierto();  
-            if(is_array($datos)==true and count($datos)>0){
-                foreach($datos as $row)
-                {
-                    $output["TOTAL"] = $row["TOTAL"];
-                }
-                echo json_encode($output);
-            }
-        break;
-
-        case "totalcerrado";
-            $datos=$ticket->get_ticket_totalcerrado();  
-            if(is_array($datos)==true and count($datos)>0){
-                foreach($datos as $row)
-                {
-                    $output["TOTAL"] = $row["TOTAL"];
-                }
-                echo json_encode($output);
-            }
-        break;
-
-        case "grafico";
-            $datos=$ticket->get_ticket_grafico();  
-            echo json_encode($datos);
-        break;
+        public function get_ticket_grafico(){
+            $conectar= parent::conexion();
+            parent::set_names();
+            $sql="SELECT tm_categoria.cat_nom as nom,COUNT(*) AS total
+                FROM   tm_ticket  JOIN  
+                    tm_categoria ON tm_ticket.cat_id = tm_categoria.cat_id  
+                WHERE    
+                tm_ticket.est = 1
+                GROUP BY 
+                tm_categoria.cat_nom 
+                ORDER BY total DESC";
+            $sql=$conectar->prepare($sql);
+            $sql->execute();
+            return $resultado=$sql->fetchAll();
+        } 
 
     }
 ?>
